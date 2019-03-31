@@ -38,7 +38,7 @@ class Template
     {
         $file = $this->file($file);
 
-        if (!file_exists($file)) {
+        if (! file_exists($file)) {
             return;
         }
 
@@ -77,11 +77,11 @@ class Template
     {
         $template = $this->file($template);
 
-        if (!file_exists($template)) {
+        if (! file_exists($template)) {
             return;
         }
 
-        if (!empty($data) && is_array($data)) {
+        if (! empty($data) && is_array($data)) {
             extract($data);
         }
 
@@ -144,6 +144,22 @@ class Template
     public function extend($template, array $data = [])
     {
         $this->layout = $this->view($template, $data);
+    }
+
+    /**
+     * Esacpe text.
+     *
+     * @see https://www.php.net/htmlspecialchars
+     *
+     * @param  string $text
+     * @param  int    $flags
+     * @param  string $encoding
+     *
+     * @return string
+     */
+    public function escape($text, $flags = ENT_COMPAT | ENT_HTML401, $encoding = 'UTF-8')
+    {
+        return htmlspecialchars($text, $flags, $encoding);
     }
 
     /**
