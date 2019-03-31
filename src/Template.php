@@ -163,7 +163,7 @@ class Template
     }
 
     /**
-     * Include view.
+     * Include template view.
      *
      * @param  string $template
      * @param  array $data
