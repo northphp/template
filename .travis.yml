@@ -1,0 +1,13 @@
+language: php
+
+php:
+  - 7.1
+  - 7.2
+  - 7.3
+
+install:
+  - travis_retry composer install --no-interaction --prefer-source
+
+script:
+  - composer lint
+  - composer test
