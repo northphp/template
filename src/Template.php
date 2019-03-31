@@ -62,6 +62,42 @@ class Template
     }
 
     /**
+     * Find template file to include.
+     *
+     * @param  string $template
+     *
+     * @return string|null
+     */
+    protected function file($template)
+    {
+        if (file_exists($template)) {
+            return $template;
+        }
+
+        foreach ($this->paths as $path) {
+            $path = $path . '/' . $template . '.php';
+
+            if (file_exists($path)) {
+                return $path;
+            }
+        }
+
+        return '';
+    }
+
+    /**
+     * Get section key.
+     *
+     * @param  string $key
+     *
+     * @return string
+     */
+    protected function key($key)
+    {
+        return '<?=' . $key . '?>';
+    }
+
+    /**
      * Render template.
      *
      * @param  string $file
@@ -83,18 +119,6 @@ class Template
         }
 
         echo $content;
-    }
-
-    /**
-     * Get section key.
-     *
-     * @param  string $key
-     *
-     * @return string
-     */
-    protected function key($key)
-    {
-        return '<?=' . $key . '?>';
     }
 
     /**
@@ -122,30 +146,6 @@ class Template
         include $template;
 
         return ob_get_clean();
-    }
-
-    /**
-     * Find template file to include.
-     *
-     * @param  string $template
-     *
-     * @return string|null
-     */
-    protected function file($template)
-    {
-        if (file_exists($template)) {
-            return $template;
-        }
-
-        foreach ($this->paths as $path) {
-            $path = $path . '/' . $template . '.php';
-
-            if (file_exists($path)) {
-                return $path;
-            }
-        }
-
-        return '';
     }
 
     /**
