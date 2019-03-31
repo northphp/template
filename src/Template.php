@@ -168,17 +168,6 @@ class Template
     }
 
     /**
-     * Extend layout.
-     *
-     * @param  string $template
-     * @param  array $data
-     */
-    public function extend($template, array $data = [])
-    {
-        $this->layout = $this->view($template, $data);
-    }
-
-    /**
      * Esacpe text.
      *
      * @see https://www.php.net/htmlspecialchars
@@ -192,6 +181,17 @@ class Template
     public function escape($text, $flags = ENT_COMPAT | ENT_HTML401, $encoding = 'UTF-8')
     {
         return htmlspecialchars($text, $flags, $encoding);
+    }
+
+    /**
+     * Extend layout.
+     *
+     * @param  string $template
+     * @param  array $data
+     */
+    public function extend($template, array $data = [])
+    {
+        $this->layout = $this->view($template, $data);
     }
 
     /**
