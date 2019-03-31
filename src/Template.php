@@ -4,6 +4,12 @@ namespace North\Template;
 
 class Template
 {
+    /**
+     * Custom functions.
+     *
+     * @var array
+     */
+    protected $functions = [];
 
     /**
      * Template paths.
@@ -27,6 +33,32 @@ class Template
     public function __construct($paths)
     {
         $this->paths = is_array($paths) ? $paths : [$paths];
+    }
+
+    /**
+     * Dynamic call custom functions.
+     *
+     * @param  string $name
+     * @param  array  $arguments
+     *
+     * @return mixed
+     */
+    public function __call($name, $arguments)
+    {
+        if (isset($this->functions[$name])) {
+            return call_user_func_array($this->functions[$name], $arguments);
+        }
+    }
+
+    /**
+     * Add custom function.
+     *
+     * @param  string   $name
+     * @param  callable $callback
+     */
+    public function addFunction($name, $callback)
+    {
+        $this->functions[$name] = $callback;
     }
 
     /**

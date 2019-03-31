@@ -18,4 +18,15 @@ class TemplateTest extends TestCase
         $this->assertContains('<h1>Fetch - Not found</h1>', $output);
         $this->assertContains('&lt;a href=&quot;#&quot;&gt;Click&lt;/a&gt;', $output);
     }
+
+    public function testCustomFunctions()
+    {
+        $template = new Template(__DIR__ . '/testdata');
+
+        $template->addFunction('up', function ($t) {
+            return strtoupper($t);
+        });
+
+        $this->assertSame('UP', $template->up('up'));
+    }
 }
