@@ -15,6 +15,7 @@ class TemplateTest extends TestCase
 
         $this->assertContains('<title>404 - Not found</title>', $output);
         $this->assertContains('<h1>404 - Not found</h1>', $output);
+        $this->assertContains('<h1>Fetch - Not found</h1>', $output);
         $this->assertContains('&lt;a href=&quot;#&quot;&gt;Click&lt;/a&gt;', $output);
     }
 }

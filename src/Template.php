@@ -163,6 +163,19 @@ class Template
     }
 
     /**
+     * Fetch template view to string.
+     *
+     * @param  string $template
+     * @param  array $data
+     *
+     * @return string
+     */
+    public function fetch($template, array $data = [])
+    {
+        return $this->view($template, $data);
+    }
+
+    /**
      * Include template view.
      *
      * @param  string $template
@@ -170,7 +183,7 @@ class Template
      */
     public function include($template, array $data = [])
     {
-        echo $this->view($template, $data);
+        echo $this->fetch($template, $data);
     }
 
     /**
