@@ -2,6 +2,8 @@
 
 namespace North\Template;
 
+use Exception;
+
 class Template
 {
     /**
@@ -82,7 +84,7 @@ class Template
             }
         }
 
-        return '';
+        throw new Exception(sprintf('Template file could not be found: %s', $template));
     }
 
     /**
@@ -172,15 +174,15 @@ class Template
      *
      * @see https://www.php.net/htmlspecialchars
      *
-     * @param  string $text
+     * @param  string $value
      * @param  int    $flags
      * @param  string $encoding
      *
      * @return string
      */
-    public function escape($text, $flags = ENT_COMPAT | ENT_HTML401, $encoding = 'UTF-8')
+    public function escape($value, $flags = ENT_COMPAT | ENT_HTML401, $encoding = 'UTF-8')
     {
-        return htmlspecialchars($text, $flags, $encoding);
+        return htmlspecialchars($value, $flags, $encoding);
     }
 
     /**
@@ -205,6 +207,27 @@ class Template
     public function fetch($template, array $data = [])
     {
         return $this->view($template, $data);
+    }
+
+    /**
+     * Apply filter functions to variable.
+     *
+     * @param  string $value
+     * @param  string $functions
+     *
+     * @return mixed
+     */
+    public function filter($value, $functions)
+    {
+        foreach (explode('|', $functions) as $function) {
+            if (is_callable($function)) {
+                $value = call_user_func($function, $value);
+            } else {
+                throw new Exception(sprintf('The filter function could not be found: %s', $function));
+            }
+        }
+
+        return $value;
     }
 
     /**

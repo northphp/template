@@ -29,4 +29,29 @@ class TemplateTest extends TestCase
 
         $this->assertSame('UP', $template->up('up'));
     }
+
+    public function testFilterFunction()
+    {
+        $template = new Template(__DIR__ . '/testdata');
+
+        $this->assertSame('UP', $template->filter('UP', 'strtolower|strtoupper'));
+    }
+
+    public function testFilterFunctionNotFoundException()
+    {
+        $this->expectException(Exception::class);
+
+        $template = new Template(__DIR__ . '/testdata');
+
+        $template->filter('UP', 'strtolower|strtoupper|missing');
+    }
+
+    public function testTemplateNotFoundException()
+    {
+        $this->expectException(Exception::class);
+
+        $template = new Template(__DIR__ . '/testdata');
+
+        $template->render('missing');
+    }
 }
