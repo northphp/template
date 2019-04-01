@@ -24,10 +24,10 @@ $template->render('index');
 
 `index.php`
 ```php
-<?php $this->extend('layouts/app', ['title' => 'Startpage']); ?>
-<?php $this->block('content'); ?>
-    <?php $this->include('partials/content', ['title' => 'Hello, world']); ?>
-<?php $this->endblock();
+<?php $this->extend('layouts/app', ['title' => 'Startpage']) ?>
+<?php $this->block('content') ?>
+    <?php $this->include('partials/content', ['title' => 'Hello, world']) ?>
+<?php $this->endblock() ?>
 ```
 
 `layouts/app.php`
@@ -35,7 +35,7 @@ $template->render('index');
 <!doctype html>
 <html>
   <head>
-    <title><?php echo $this->escape($title); ?></title>
+    <title><?php echo $this->escape($title) ?></title>
   </head>
   <body>
     <?php $this->section('content') ?>
@@ -46,7 +46,7 @@ $template->render('index');
 `partials/content.php`
 ```php
 <div class="content">
-    <h1><?php echo $this->escape($title); ?></h1>
+    <h1><?php echo $this->escape($title) ?></h1>
 </div>
 ```
 
