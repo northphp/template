@@ -15,7 +15,7 @@ composer require north/template
 ## Examples
 
 ```php
-use Norht\Template\Template;
+use North\Template\Template;
 
 $template = new Template('path/to/templates');
 
