@@ -1,7 +1,7 @@
 {
     "name": "north/template",
     "license": "MIT",
-    "description": "",
+    "description": "A simple template system",
     "require": {
         "php": "^7.1"
     },
