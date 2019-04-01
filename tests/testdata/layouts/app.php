@@ -1,9 +1,9 @@
 <!doctype html>
 <html>
   <head>
-    <title><?php echo $title; ?></title>
+    <title><?php echo $this->escape($title); ?></title>
   </head>
   <body>
-        <?php $this->section('content') ?>
+    <?php $this->section('content') ?>
   </body>
 </html>
