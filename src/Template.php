@@ -35,6 +35,13 @@ class Template
     protected $sections = [];
 
     /**
+     * Parent template sections.
+     *
+     * @var array
+     */
+    protected $parentSections = [];
+
+    /**
      * Template constructor.
      *
      * @param array $paths
@@ -169,6 +176,13 @@ class Template
      */
     public function block($name)
     {
+        $this->parent = false;
+
+        if (!isset($this->sections[$name])) {
+            $this->section($name);
+            $this->parent = true;
+        }
+
         $this->block = $name;
         ob_start();
     }
@@ -178,7 +192,16 @@ class Template
      */
     public function endblock()
     {
-        $this->sections[$this->block] = ob_get_clean();
+        if ($this->parent) {
+            if (!isset($this->parentSections[$this->block])) {
+                $this->parentSections[$this->block] = '';
+            }
+
+            $this->parentSections[$this->block] .= ob_get_clean();
+            return;
+        }
+
+        $this->sections[$this->block] .= ob_get_clean();
     }
 
     /**
@@ -254,13 +277,32 @@ class Template
     }
 
     /**
+     * Render parent block.
+     */
+    public function parent()
+    {
+        if (!isset($this->parentSections[$this->block])) {
+            return;
+        }
+
+        if (!is_string($this->parentSections[$this->block])) {
+            return;
+        }
+
+        echo $this->parentSections[$this->block];
+    }
+
+    /**
      * Start block section.
      *
      * @param  string $name
      */
     public function section($name)
     {
-        $this->sections[$name] = true;
+        if (!isset($this->sections[$name])) {
+            $this->sections[$name] = '';
+        }
+
         echo $this->key($name);
     }
 }

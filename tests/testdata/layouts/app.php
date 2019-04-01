@@ -4,6 +4,8 @@
     <title><?php echo $this->escape($title) ?></title>
   </head>
   <body>
-    <?php $this->section('content') ?>
+    <?php $this->block('content') ?>
+        <p>Hello parent block</p>
+    <?php $this->endblock() ?>
   </body>
 </html>

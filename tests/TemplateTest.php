@@ -14,6 +14,7 @@ class TemplateTest extends TestCase
         $output = ob_get_clean();
 
         $this->assertContains('<title>404 - Not found</title>', $output);
+        $this->assertContains('<p>Hello parent block</p>', $output);
         $this->assertContains('<h1>404 - Not found</h1>', $output);
         $this->assertContains('<h1>Fetch - Not found</h1>', $output);
         $this->assertContains('&lt;a href=&quot;#&quot;&gt;Click&lt;/a&gt;', $output);
