@@ -14,6 +14,13 @@ class Template
     protected $functions = [];
 
     /**
+     * Current layout.
+     *
+     * @var string
+     */
+    protected $layout = '';
+
+    /**
      * Template paths.
      *
      * @var string
@@ -103,13 +110,18 @@ class Template
      * Render template.
      *
      * @param  string $file
+     * @param  array  $data
      */
-    public function render($file)
+    public function render($file, array $data = [])
     {
         $file = $this->file($file);
 
         if (! file_exists($file)) {
             return;
+        }
+
+        if (! empty($data) && is_array($data)) {
+            extract($data);
         }
 
         include $file;

@@ -1,3 +1,3 @@
 <div class="content">
-    <h1><?php echo $title; ?></h1>
+    <?php $this->include('partials/title', ['title' => $title]); ?>
 </div>
