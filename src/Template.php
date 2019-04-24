@@ -86,6 +86,8 @@ class Template
      */
     protected function file($template)
     {
+        $template = str_replace('.', '/', $template);
+
         if (file_exists($template)) {
             return $template;
         }

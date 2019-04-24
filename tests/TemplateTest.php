@@ -5,12 +5,19 @@ use PHPUnit\Framework\TestCase;
 
 class TemplateTest extends TestCase
 {
+    public function setUp() {
+        $this->template = new Template(__DIR__ . '/testdata');
+    }
+
+    public function tearDown()
+    {
+        unset($this->template);
+    }
+
     public function testTemplate()
     {
-        $template = new Template(__DIR__ . '/testdata');
-
         ob_start();
-        $template->render('404');
+        $this->template->render('404');
         $output = ob_get_clean();
 
         $this->assertContains('<title>404 - Not found</title>', $output);
@@ -20,39 +27,40 @@ class TemplateTest extends TestCase
         $this->assertContains('&lt;a href=&quot;#&quot;&gt;Click&lt;/a&gt;', $output);
     }
 
+    public function testDotIncludeRender()
+    {
+        ob_start();
+        $this->template->render('partials.title', ['title' => 'Test']);
+        $output = ob_get_clean();
+
+        $this->assertContains('<h1>Test</h1>', $output);
+    }
+
     public function testCustomFunctions()
     {
-        $template = new Template(__DIR__ . '/testdata');
-
-        $template->addFunction('up', function ($t) {
+        $this->template->addFunction('up', function ($t) {
             return strtoupper($t);
         });
 
-        $this->assertSame('UP', $template->up('up'));
+        $this->assertSame('UP', $this->template->up('up'));
     }
 
     public function testFilterFunction()
     {
-        $template = new Template(__DIR__ . '/testdata');
-
-        $this->assertSame('UP', $template->filter('UP', 'strtolower|strtoupper'));
+        $this->assertSame('UP', $this->template->filter('UP', 'strtolower|strtoupper'));
     }
 
     public function testFilterFunctionNotFoundException()
     {
         $this->expectException(Exception::class);
 
-        $template = new Template(__DIR__ . '/testdata');
-
-        $template->filter('UP', 'strtolower|strtoupper|missing');
+        $this->template->filter('UP', 'strtolower|strtoupper|missing');
     }
 
     public function testTemplateNotFoundException()
     {
         $this->expectException(Exception::class);
 
-        $template = new Template(__DIR__ . '/testdata');
-
-        $template->render('missing');
+        $this->template->render('missing');
     }
 }
