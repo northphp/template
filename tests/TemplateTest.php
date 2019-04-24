@@ -5,7 +5,8 @@ use PHPUnit\Framework\TestCase;
 
 class TemplateTest extends TestCase
 {
-    public function setUp() {
+    public function setUp()
+    {
         $this->template = new Template(__DIR__ . '/testdata');
     }
 
