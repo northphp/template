@@ -7,6 +7,11 @@ use Exception;
 class Template
 {
     /**
+     * Template extension.
+     */
+    protected $extension = '.php';
+
+    /**
      * Custom functions.
      *
      * @var array
@@ -86,14 +91,16 @@ class Template
      */
     protected function file($template)
     {
-        $template = str_replace('.', '/', $template);
+        $name = basename($template, $this->extension);
+        $template = str_replace($name, str_replace('.', '/', $name), $template);
+        $template = str_replace($this->extension, '', $template);
 
         if (file_exists($template)) {
             return $template;
         }
 
         foreach ($this->paths as $path) {
-            $path = $path . '/' . $template . '.php';
+            $path = $path . '/' . $template . $this->extension;
 
             if (file_exists($path)) {
                 return $path;

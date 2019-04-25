@@ -31,7 +31,7 @@ class TemplateTest extends TestCase
     public function testDotIncludeRender()
     {
         ob_start();
-        $this->template->render('partials.title', ['title' => 'Test']);
+        $this->template->render('partials.title.php', ['title' => 'Test']);
         $output = ob_get_clean();
 
         $this->assertContains('<h1>Test</h1>', $output);
