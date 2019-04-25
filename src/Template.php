@@ -95,8 +95,8 @@ class Template
         $template = str_replace($name, str_replace('.', '/', $name), $template);
         $template = str_replace($this->extension, '', $template);
 
-        if (file_exists($template)) {
-            return $template;
+        if (file_exists($template . $this->extension)) {
+            return $template . $this->extension;
         }
 
         foreach ($this->paths as $path) {
