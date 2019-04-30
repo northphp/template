@@ -47,6 +47,11 @@ class Template
     protected $parentSections = [];
 
     /**
+     * Template parser.
+     */
+    protected $parser;
+
+    /**
      * Template constructor.
      *
      * @param array $paths
@@ -54,6 +59,7 @@ class Template
     public function __construct($paths)
     {
         $this->paths = is_array($paths) ? $paths : [$paths];
+        $this->parser = new Parser;
     }
 
     /**
@@ -140,7 +146,13 @@ class Template
             extract($data);
         }
 
-        include $file;
+        $text = file_get_contents($file);
+        $text = $this->parser->parse($text);
+        $tmp  = tmpfile();
+
+        fwrite($tmp, $text);
+        $output = include stream_get_meta_data($tmp)['uri'];
+        fclose($tmp);
 
         $content = $this->layout;
 
@@ -161,19 +173,9 @@ class Template
      */
     protected function view($template, array $data = [])
     {
-        $template = $this->file($template);
-
-        if (! file_exists($template)) {
-            return;
-        }
-
-        if (! empty($data) && is_array($data)) {
-            extract($data);
-        }
-
         ob_start();
 
-        include $template;
+        $this->render($template, $data);
 
         return ob_get_clean();
     }
