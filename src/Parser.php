@@ -48,7 +48,7 @@ class Parser
                         if ($text[$i +1] === '{') {
                             $skip++;
                         }
-                    } elseif ($ccount > 1 && $skip <= 0) {
+                    } elseif ($ccount > 1) {
                         # All after start of var output.
                         $after .= $text[$i];
                     }
@@ -63,7 +63,7 @@ class Parser
                         # Ending var output.
                         $after .= ')';
                         $after .= $this->end();
-                    } elseif ($ccount > 1 && $skip === 0) {
+                    } elseif ($ccount > 1) {
                         # All before end of var output.
                         $after .= $text[$i];
                     }
