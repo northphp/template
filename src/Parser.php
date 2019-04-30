@@ -2,7 +2,8 @@
 
 namespace North\Template;
 
-class Parser {
+class Parser
+{
     /**
      * Parse input text and replace template tags with php tags.
      *
@@ -37,7 +38,7 @@ class Parser {
                 $skip = 0;
             }
 
-            switch($text[$i]) {
+            switch ($text[$i]) {
                 case '{':
                     # Starting var output.
                     if ($ccount === 1 && $text[$i-1] === '{') {
@@ -47,7 +48,7 @@ class Parser {
                         if ($text[$i +1] === '{') {
                             $skip++;
                         }
-                    } else if ($ccount > 1 && $skip <= 0) {
+                    } elseif ($ccount > 1 && $skip <= 0) {
                         # All after start of var output.
                         $after .= $text[$i];
                     }
@@ -62,7 +63,7 @@ class Parser {
                         # Ending var output.
                         $after .= ')';
                         $after .= $this->end();
-                    } else if ($ccount > 1 && $skip === 0) {
+                    } elseif ($ccount > 1 && $skip === 0) {
                         # All before end of var output.
                         $after .= $text[$i];
                     }
@@ -72,10 +73,10 @@ class Parser {
                     # Start non escaping var output.
                     if ($text[$i-1] === '{') {
                         $after .= $this->start();
-                    } else if ($text[$i] === '!') {
+                    } elseif ($text[$i] === '!') {
                         $n = $i;
 
-                        while($text[$n + 1] === '!') {
+                        while ($text[$n + 1] === '!') {
                             $n++;
                         }
 
