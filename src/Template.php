@@ -190,7 +190,7 @@ class Template
         $this->parent = false;
 
         if (!isset($this->sections[$name])) {
-            $this->section($name);
+            $this->yield($name);
             $this->parent = true;
         }
 
@@ -304,11 +304,11 @@ class Template
     }
 
     /**
-     * Start block section.
+     * Render the contents of a given section.
      *
      * @param  string $name
      */
-    public function section($name)
+    public function yield($name)
     {
         if (!isset($this->sections[$name])) {
             $this->sections[$name] = '';
