@@ -38,7 +38,7 @@ $template->render('index');
     <title><?php echo $this->escape($title) ?></title>
   </head>
   <body>
-    <?php $this->section('content') ?>
+    <?php $this->yield('content') ?>
   </body>
 </html>
 ```

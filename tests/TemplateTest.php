@@ -15,17 +15,24 @@ class TemplateTest extends TestCase
         unset($this->template);
     }
 
-    public function testTemplate()
+    public function testFiles()
     {
-        ob_start();
-        $this->template->render('404');
-        $output = ob_get_clean();
+        foreach (glob(__DIR__ . '/testdata/input/*.php') as $file) {
+            $name = basename($file, '.php');
+            $output = __DIR__ . '/testdata/output/' . $name . '.php';
 
-        $this->assertContains('<title>404 - Not found</title>', $output);
-        $this->assertContains('<p>Hello parent block</p>', $output);
-        $this->assertContains('<h1>404 - Not found</h1>', $output);
-        $this->assertContains('<h1>Fetch - Not found</h1>', $output);
-        $this->assertContains('&lt;a href=&quot;#&quot;&gt;Click&lt;/a&gt;', $output);
+            if (!file_exists($output)) {
+                continue;
+            }
+
+            $expected = file_get_contents($output);
+
+            ob_start();
+            $this->template->render($file);
+            $actual = trim(ob_get_clean());
+
+            $this->assertSame($expected, $actual);
+        }
     }
 
     public function testDotIncludeRender()
