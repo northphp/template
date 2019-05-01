@@ -1,6 +1,7 @@
 {% switch ($tada) %}
     {% case 1 %}
     <p>case 1</p>
+    {% fallthrough %}
     {% case 2 %}
     <p>case 2</p>
     {% default %}

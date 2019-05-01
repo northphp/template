@@ -39,18 +39,27 @@ class Parser
 
         // Remove tabs and spaces before the first case in switch statement to prevent syntax error.
         // See https://php.net/manual/en/control-structures.alternative-syntax.php
-        $text = preg_replace_callback('/(\{\%\s+switch.*\%\})\n(\s+)(?!:\{\%)/', function($matches) {
+        $text = preg_replace_callback('/(\{\s*\%\s+switch.*\%\s*\})\n(\s+)(?!:\{\s*\%)/', function($matches) {
             return $matches[1] . "\n";
         }, $text);
 
         // Automatic add break to case or default.
         $text = preg_replace_callback('/((case|default).*)\n.*\{\%\s+(\w+)/', function($matches) {
+            // Allow custom break statement.
             if (trim($matches[3]) === 'break') {
+                return $matches[0];
+            }
+
+            // Allow custom fallthroguh statement.
+            if (trim($matches[3]) === 'fallthrough') {
                 return $matches[0];
             }
 
             return $matches[1] . "\n{% break %}\n{% " . $matches[3];
         }, $text);
+
+        // Remove fallthrough statement.
+        $text = preg_replace('/\{\s*\%\s*fallthrough\s*\%\s*\}/', '', $text);
 
         // Speedup scanning.
         $encoding = null;
@@ -153,7 +162,12 @@ class Parser
             mb_internal_encoding($encoding);
         }
 
-        return str_replace($before, $after, $text);
+        $text = str_replace($before, $after, $text);
+
+        // Remove empty blank lines.
+        $text = preg_replace("/(^[\r\n]*|[\r\n]+)[\s\t]*[\r\n]+/", "\n", $text);
+
+        return $text;
     }
 
     /**

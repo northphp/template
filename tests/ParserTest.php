@@ -28,6 +28,8 @@ class ParserTest extends TestCase
             $expected = file_get_contents($output);
             $actual = $this->parser->parse(file_get_contents($file));
 
+            $actual = trim($actual);
+
             $this->assertSame($expected, $actual);
         }
     }
