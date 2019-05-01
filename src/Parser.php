@@ -39,12 +39,12 @@ class Parser
 
         // Remove tabs and spaces before the first case in switch statement to prevent syntax error.
         // See https://php.net/manual/en/control-structures.alternative-syntax.php
-        $text = preg_replace_callback('/(\{\s*\%\s+switch.*\%\s*\})\n(\s+)(?!:\{\s*\%)/', function($matches) {
+        $text = preg_replace_callback('/(\{\s*\%\s+switch.*\%\s*\})\n(\s+)(?!:\{\s*\%)/', function ($matches) {
             return $matches[1] . "\n";
         }, $text);
 
         // Automatic add break to case or default.
-        $text = preg_replace_callback('/((case|default).*)\n.*\{\%\s+(\w+)/', function($matches) {
+        $text = preg_replace_callback('/((case|default).*)\n.*\{\%\s+(\w+)/', function ($matches) {
             // Allow custom break statement.
             if (trim($matches[3]) === 'break') {
                 return $matches[0];

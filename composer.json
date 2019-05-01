@@ -16,7 +16,7 @@
     },
     "scripts": {
         "lint": "vendor/bin/phpcs --standard=PSR2 src",
-        "format": "vendor/bin/phpcbf --standard=PSR2 src tests",
+        "format": "vendor/bin/phpcbf --standard=PSR2 src",
         "test": "vendor/bin/phpunit"
     }
 }
