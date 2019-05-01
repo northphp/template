@@ -91,29 +91,29 @@ class Template
     /**
      * Find template file to include.
      *
-     * @param  string $template
+     * @param  string $file
      *
      * @return string|null
      */
-    protected function file($template)
+    protected function file($file)
     {
-        $name = basename($template, $this->extension);
-        $template = str_replace($name, str_replace('.', '/', $name), $template);
-        $template = str_replace($this->extension, '', $template);
+        $name = basename($file, $this->extension);
+        $file = str_replace($name, str_replace('.', '/', $name), $file);
+        $file = str_replace($this->extension, '', $file);
 
-        if (file_exists($template . $this->extension)) {
-            return $template . $this->extension;
+        if (file_exists($file . $this->extension)) {
+            return $file . $this->extension;
         }
 
         foreach ($this->paths as $path) {
-            $path = $path . '/' . $template . $this->extension;
+            $path = $path . '/' . $file . $this->extension;
 
             if (file_exists($path)) {
                 return $path;
             }
         }
 
-        throw new Exception(sprintf('Template file could not be found: %s', $template));
+        throw new Exception(sprintf('Template file could not be found: %s', $file));
     }
 
     /**
@@ -166,17 +166,15 @@ class Template
     /**
      * Render view template.
      *
-     * @param  string $template
-     * @param  array $data
+     * @param  string $file
+     * @param  array  $data
      *
      * @return string
      */
-    protected function view($template, array $data = [])
+    protected function view($file, array $data = [])
     {
         ob_start();
-
-        $this->render($template, $data);
-
+        $this->render($file, $data);
         return ob_get_clean();
     }
 
@@ -245,14 +243,15 @@ class Template
     /**
      * Fetch template view to string.
      *
-     * @param  string $template
-     * @param  array $data
+     * @param  string $file
+     * @param  array  $data
      *
      * @return string
      */
-    public function fetch($template, array $data = [])
+    public function fetch($file, array $data = [])
     {
-        return $this->view($template, $data);
+        $template = new static($this->paths);
+        return $template->view($file, $data);
     }
 
     /**
@@ -279,12 +278,12 @@ class Template
     /**
      * Include template view.
      *
-     * @param  string $template
-     * @param  array $data
+     * @param  string $file
+     * @param  array  $data
      */
-    public function include($template, array $data = [])
+    public function include($file, array $data = [])
     {
-        echo $this->fetch($template, $data);
+        echo $this->fetch($file, $data);
     }
 
     /**

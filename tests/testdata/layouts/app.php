@@ -7,5 +7,7 @@
     <?php $this->block('content') ?>
         <p>Hello parent block</p>
     <?php $this->endblock() ?>
+
+    <footer class="footer"><?php $this->yield('footer') ?></footer>
   </body>
 </html>
