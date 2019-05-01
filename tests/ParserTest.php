@@ -15,33 +15,20 @@ class ParserTest extends TestCase
         unset($this->parser);
     }
 
-    public function testVariableOutput()
+    public function testFiles()
     {
-        $text = file_get_contents(__DIR__ . '/testdata/parser/var-output.php');
-        $output = $this->parser->parse($text);
+        foreach (glob(__DIR__ . '/testdata/parser/input/*.php') as $file) {
+            $name = basename($file, '.php');
+            $output = __DIR__ . '/testdata/parser/output/' . $name . '.php';
 
-        $this->assertSame('<h1><?php echo $this->escape( $title ) ?></h1>', $output);
-    }
+            if (!file_exists($output)) {
+                continue;
+            }
 
-    public function testNonEscapeOutput()
-    {
-        $text = file_get_contents(__DIR__ . '/testdata/parser/raw-output.php');
-        $output = $this->parser->parse($text);
+            $expected = file_get_contents($output);
+            $actual = $this->parser->parse(file_get_contents($file));
 
-        $output = preg_replace('/\s+/', ' ', $output);
-
-        $this->assertSame('<h1><?php echo $title ?></h1>', $output);
-    }
-
-    public function testForeachOutput()
-    {
-        $text = file_get_contents(__DIR__ . '/testdata/parser/foreach-output.php');
-        $output = $this->parser->parse($text);
-
-        $output = preg_replace('/\s+/', ' ', $output);
-
-        $this->assertContains('<?php foreach ($items as $item): ?>', $output);
-        $this->assertContains('<p><?php echo $this->escape( $item ) ?></p>', $output);
-        $this->assertContains('<?php endforeach ?>', $output);
+            $this->assertSame($expected, $actual);
+        }
     }
 }

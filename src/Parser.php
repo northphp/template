@@ -5,6 +5,23 @@ namespace North\Template;
 class Parser
 {
     /**
+     * Control structures with alternative syntax.
+     *
+     * @see https://php.net/manual/en/control-structures.alternative-syntax.php
+     *
+     * @var array
+     */
+    protected $controls = [
+        'if',
+        'end if',
+        'endif',
+        'for',
+        'foreach',
+        'switch',
+        'where'
+    ];
+
+    /**
      * Parse input text and replace template tags with php tags.
      *
      * @param  string $text
@@ -13,6 +30,29 @@ class Parser
      */
     public function parse($text)
     {
+
+        // Add colon at the end of control structures.
+        $text = preg_replace('/((' . implode('|', $this->controls) . ').*\)).*(\%)/', '${1}: %', $text);
+
+        // Add colon at the end of case.
+        $text = preg_replace('/((case|default.*)(?:\%))/', '${2}: %', $text);
+
+        // Remove tabs and spaces before the first case in switch statement to prevent syntax error.
+        // See https://php.net/manual/en/control-structures.alternative-syntax.php
+        $text = preg_replace_callback('/(\{\%\s+switch.*\%\})\n(\s+)(?!:\{\%)/', function($matches) {
+            return $matches[1] . "\n";
+        }, $text);
+
+        // Automatic add break to case or default.
+        $text = preg_replace_callback('/((case|default).*)\n.*\{\%\s+(\w+)/', function($matches) {
+            if (trim($matches[3]) === 'break') {
+                return $matches[0];
+            }
+
+            return $matches[1] . "\n{% break %}\n{% " . $matches[3];
+        }, $text);
+
+        // Speedup scanning.
         $encoding = null;
         if (function_exists('mb_internal_encoding') && ini_get('mbstring.func_overload') & 2) {
             $encoding = mb_internal_encoding();
@@ -92,13 +132,16 @@ class Parser
 
                     break;
                 case '%':
-                    # Start code output {%
+                    # End code output %}
                     if ($text[$i+1] === '}') {
                         $after .= trim($this->end());
                     } else {
-                        # End code output %}
+                        # Start code output {%
                         $after .= trim($this->start(false));
                     }
+                    break;
+                case ' ':
+                    $after .= $text[$i];
                     break;
                 default:
                     $after .= $text[$i];
@@ -109,7 +152,6 @@ class Parser
         if ($encoding) {
             mb_internal_encoding($encoding);
         }
-
 
         return str_replace($before, $after, $text);
     }

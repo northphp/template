@@ -1,3 +1,3 @@
-{% foreach ($items as $item): %}
+{% foreach ($items as $item) %}
     <p>{{ $item }}</p>
 {% endforeach %}
