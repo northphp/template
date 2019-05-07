@@ -7,6 +7,16 @@ use Exception;
 class Template
 {
     /**
+     * Defeault section.
+     *
+     * @var array
+     */
+    protected $defaultSection = [
+        'parent' => '',
+        'text'   => '',
+    ];
+
+    /**
      * Template extension.
      */
     protected $extension = '.php';
@@ -38,13 +48,6 @@ class Template
      * @var array
      */
     protected $sections = [];
-
-    /**
-     * Parent template sections.
-     *
-     * @var array
-     */
-    protected $parentSections = [];
 
     /**
      * Template parser.
@@ -86,6 +89,30 @@ class Template
     public function addFunction($name, $callback)
     {
         $this->functions[$name] = $callback;
+    }
+
+    /**
+     * Call callable code in arrays.
+     *
+     * @param  array $args
+     *
+     * @return array
+     */
+    protected function callData(array $args = [])
+    {
+        foreach ($args as $i => $arg) {
+            if (is_callable($arg)) {
+                $args[$i] = call_user_func($arg);
+                continue;
+            }
+
+            if (is_array($arg)) {
+                $args[$i] = $this->callData($arg);
+                continue;
+            }
+        }
+
+        return $args;
     }
 
     /**
@@ -143,7 +170,7 @@ class Template
         }
 
         if (! empty($data) && is_array($data)) {
-            extract($data);
+            extract($this->callData($data));
         }
 
         $text = file_get_contents($file);
@@ -156,8 +183,8 @@ class Template
 
         $content = $this->layout;
 
-        foreach ($this->sections as $key => $value) {
-            $content = str_replace($this->key($key), $value, $content);
+        foreach ($this->sections as $key => $row) {
+            $content = str_replace($this->key($key), $row['text'], $content);
         }
 
         echo $content;
@@ -185,15 +212,20 @@ class Template
      */
     public function block($name)
     {
-        $this->parent = false;
+        $args = array_slice(func_get_args(), 1);
 
+        $this->parent = false;
         if (!isset($this->sections[$name])) {
             $this->yield($name);
             $this->parent = true;
         }
 
         $this->block = $name;
-        ob_start();
+        $this->sections[$name]['text'] .= implode('', $this->callData($args));
+
+        if (empty($args)) {
+            ob_start();
+        }
     }
 
     /**
@@ -202,15 +234,15 @@ class Template
     public function endblock()
     {
         if ($this->parent) {
-            if (!isset($this->parentSections[$this->block])) {
-                $this->parentSections[$this->block] = '';
+            if (!isset($this->sections[$this->block])) {
+                $this->sections[$this->block] = $this->defaultSection;
             }
 
-            $this->parentSections[$this->block] .= ob_get_clean();
+            $this->sections[$this->block]['parent'] .= ob_get_clean();
             return;
         }
 
-        $this->sections[$this->block] .= ob_get_clean();
+        $this->sections[$this->block]['text'] .= ob_get_clean();
     }
 
     /**
@@ -291,15 +323,15 @@ class Template
      */
     public function parent()
     {
-        if (!isset($this->parentSections[$this->block])) {
+        if (!isset($this->sections[$this->block])) {
             return;
         }
 
-        if (!is_string($this->parentSections[$this->block])) {
+        if (!is_string($this->sections[$this->block]['parent'])) {
             return;
         }
 
-        echo $this->parentSections[$this->block];
+        echo $this->sections[$this->block]['parent'];
     }
 
     /**
@@ -310,7 +342,7 @@ class Template
     public function yield($name)
     {
         if (!isset($this->sections[$name])) {
-            $this->sections[$name] = '';
+            $this->sections[$name] = $this->defaultSection;
         }
 
         echo $this->key($name);
