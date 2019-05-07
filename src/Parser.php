@@ -74,9 +74,21 @@ class Parser
         $skip = 0;
         $after = '';
         $before = '';
+        $php = false;
 
         for ($i = 0; $i < $len; $i++) {
             $before .= $text[$i];
+
+            if ($text[$i] === '<' && $text[$i + 1] === '?') {
+                $php = true;
+            } else if ($text[$i] === '?' && $text[$i + 1] === '>') {
+                $php = false;
+            }
+
+            if ($php) {
+                $after .= $text[$i];
+                continue;
+            }
 
             if ($skip > 0) {
                 $skip--;
