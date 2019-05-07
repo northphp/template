@@ -81,7 +81,7 @@ class Parser
 
             if ($text[$i] === '<' && $text[$i + 1] === '?') {
                 $php = true;
-            } else if ($text[$i] === '?' && $text[$i + 1] === '>') {
+            } elseif ($text[$i] === '?' && $text[$i + 1] === '>') {
                 $php = false;
             }
 
