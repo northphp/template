@@ -144,7 +144,9 @@ class Template
             }
         }
 
-        throw new Exception(sprintf('Template file could not be found: %s', $file));
+        $message = "Search paths: \n- " . implode("\n- ", $this->paths);
+        $file = $file . $this->extension;
+        (new TemplateError($message, $file))->render();
     }
 
     /**
