@@ -7,7 +7,18 @@ use Exception;
 class Template
 {
     /**
-     * Defeault section.
+     * Current component.
+     *
+     * @var array
+     */
+
+    protected $component = [
+        'data' => [],
+        'file' => '',
+    ];
+
+    /**
+     * Default section.
      *
      * @var array
      */
@@ -162,7 +173,7 @@ class Template
     }
 
     /**
-     * Render template.
+     * Render template file.
      *
      * @param  string $file
      * @param  array  $data
@@ -185,10 +196,10 @@ class Template
             $text = $this->parser->parse($text);
         }
 
-        $tmp  = tmpfile();
+        $tmp = tmpfile();
 
         fwrite($tmp, $text);
-        $output = include stream_get_meta_data($tmp)['uri'];
+        include stream_get_meta_data($tmp)['uri'];
         fclose($tmp);
 
         $content = $this->layout;
@@ -198,10 +209,21 @@ class Template
         }
 
         echo $content;
+
+        $this->reset();
     }
 
     /**
-     * Render view template.
+     * Reset template properties.
+     */
+    protected function reset()
+    {
+        $this->layout = '';
+        $this->sections = [];
+    }
+
+    /**
+     * Render template view without layout replacements.
      *
      * @param  string $file
      * @param  array  $data
@@ -210,9 +232,62 @@ class Template
      */
     protected function view($file, array $data = [])
     {
+        $file = $this->file($file);
+
+        if (! file_exists($file)) {
+            return;
+        }
+
+        if (! empty($data) && is_array($data)) {
+            extract($this->callData($data));
+        }
+
+        $text = file_get_contents($file);
+
+        if (!is_null($this->parser)) {
+            $text = $this->parser->parse($text);
+        }
+
         ob_start();
-        $this->render($file, $data);
+        $tmp = tmpfile();
+
+        fwrite($tmp, $text);
+        include stream_get_meta_data($tmp)['uri'];
+        fclose($tmp);
+
         return ob_get_clean();
+    }
+
+    /**
+     * Include a component, it's like section but
+     * some may find the mental model of components easier to understand.
+     *
+     * You can pass additional data to the component.
+     *
+     * @param  string $file
+     * @param  array  $data
+     */
+    public function component($file, array $data = [])
+    {
+        $this->component['file'] = $this->file($file);
+        $this->component['data'] = $data;
+        ob_start();
+    }
+
+    /**
+     * End component.
+     */
+    public function endcomponent()
+    {
+        $slot = ob_get_clean();
+        $data = $this->component['data'];
+        $file = $this->component['file'];
+
+        $data = array_merge($data, [
+            'slot' => $slot,
+        ]);
+
+        echo $this->include($file, $data);
     }
 
     /**
@@ -285,6 +360,8 @@ class Template
     /**
      * Fetch template view to string.
      *
+     * You can pass additional data to the template.
+     *
      * @param  string $file
      * @param  array  $data
      *
@@ -319,6 +396,8 @@ class Template
 
     /**
      * Include template view.
+     *
+     * You can pass additional data to the template.
      *
      * @param  string $file
      * @param  array  $data
