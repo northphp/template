@@ -1,3 +1,4 @@
+<!-- comment -->
 <!doctype html>
 <html>
   <head>

@@ -1,3 +1,4 @@
+<!-- comment -->
 <?php $this->extend('layouts/app', ['title' => '404 - Not found']) ?>
 <?php $this->block('content') ?>
     <?php $this->parent() ?>
