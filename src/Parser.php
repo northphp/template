@@ -178,12 +178,7 @@ class Parser
             mb_internal_encoding($encoding);
         }
 
-        $text = str_replace($before, $after, $text);
-
-        // Remove empty blank lines.
-        $text = preg_replace("/(^[\r\n]*|[\r\n]+)[\s\t]*[\r\n]+/", "\n", $text);
-
-        return $text;
+        return str_replace($before, $after, $text);
     }
 
     /**
