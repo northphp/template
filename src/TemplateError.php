@@ -35,7 +35,11 @@ class TemplateError extends Exception
      */
     public function render()
     {
-        extract($this->args);
-        require_once __DIR__ . '/views/error.php';
+        if (defined('STDIN')) {
+            throw $this;
+        } else {
+            extract($this->args);
+            require_once __DIR__ . '/views/error.php';
+        }
     }
 }
