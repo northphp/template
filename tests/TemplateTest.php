@@ -80,8 +80,9 @@ class TemplateTest extends TestCase
 
     public function testTemplateNotFoundException()
     {
-        $this->expectException(Exception::class);
-
+        ob_start();
         $this->template->render('missing');
+        $output = ob_get_clean();
+        $this->assertContains('An error occurred while rendering the template for this page', $output);
     }
 }
