@@ -131,8 +131,12 @@ class Parser
 
                     break;
                 case '!':
-                    # Start non escaping var output.
-                    if ($text[$i-1] === '{') {
+                    # Allow <!doctype>
+                    if ($text[$i-1] === '<') {
+                        $after .= $text[$i];
+                        break;
+                    } elseif ($text[$i-1] === '{') {
+                        # Start non escaping var output.
                         $after .= $this->start();
                     } elseif ($text[$i] === '!') {
                         $n = $i;
