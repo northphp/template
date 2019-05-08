@@ -58,11 +58,15 @@ class Template
      * Template constructor.
      *
      * @param array $paths
+     * @param bool  $parser
      */
-    public function __construct($paths)
+    public function __construct($paths, $parser = true)
     {
         $this->paths = is_array($paths) ? $paths : [$paths];
-        $this->parser = new Parser;
+
+        if ($parser) {
+            $this->parser = new Parser;
+        }
     }
 
     /**
@@ -174,7 +178,11 @@ class Template
         }
 
         $text = file_get_contents($file);
-        $text = $this->parser->parse($text);
+
+        if (!is_null($this->parser)) {
+            $text = $this->parser->parse($text);
+        }
+
         $tmp  = tmpfile();
 
         fwrite($tmp, $text);
@@ -282,7 +290,7 @@ class Template
      */
     public function fetch($file, array $data = [])
     {
-        $template = new static($this->paths);
+        $template = new static($this->paths, !is_null($this->parser));
         return $template->view($file, $data);
     }
 
