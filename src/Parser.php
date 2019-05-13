@@ -75,6 +75,7 @@ class Parser
         $after = '';
         $before = '';
         $php = false;
+        $escape = false;
 
         for ($i = 0; $i < $len; $i++) {
             $before .= $text[$i];
@@ -131,14 +132,11 @@ class Parser
 
                     break;
                 case '!':
-                    # Allow <!doctype>
-                    if ($text[$i-1] === '<') {
-                        $after .= $text[$i];
-                        break;
-                    } elseif ($text[$i-1] === '{') {
-                        # Start non escaping var output.
+                    # Start non escaping var output.
+                    if ($text[$i-1] === '{') {
                         $after .= $this->start();
-                    } elseif ($text[$i] === '!') {
+                        $escape = true;
+                    } elseif ($text[$i] === '!' && $escape) {
                         $n = $i;
 
                         while ($text[$n + 1] === '!') {
@@ -149,6 +147,7 @@ class Parser
 
                         if ($text[$n + 1] === '}') {
                             $after .= trim($this->end());
+                            $escape = false;
                         }
                     } else {
                         # All other text than exclamation.
