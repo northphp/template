@@ -68,14 +68,23 @@ class Template
     /**
      * Template constructor.
      *
-     * @param array $paths
-     * @param bool  $parser
+     * @param array $options
      */
-    public function __construct($paths, $parser = true)
+    public function __construct(array $options)
     {
-        $this->paths = is_array($paths) ? $paths : [$paths];
+        $this->options = (object) array_merge([
+            'components' => 'components',
+            'paths'      => [],
+            'parser'     => false,
+        ], $options);
 
-        if ($parser) {
+        foreach (['paths'] as $key) {
+            if (!is_array($this->options->$key)) {
+                $this->options->$key = [$this->options->$key];
+            }
+        }
+
+        if ($this->options->parser) {
             $this->parser = new Parser;
         }
     }
@@ -134,10 +143,11 @@ class Template
      * Find template file to include.
      *
      * @param  string $file
+     * @param  bool   $error
      *
      * @return string|null
      */
-    protected function file($file)
+    protected function file($file, $error = true)
     {
         $name = basename($file, $this->extension);
         $file = str_replace($name, str_replace('.', '/', $name), $file);
@@ -147,7 +157,7 @@ class Template
             return $file . $this->extension;
         }
 
-        foreach ($this->paths as $path) {
+        foreach ($this->options->paths as $path) {
             $path = $path . '/' . $file . $this->extension;
 
             if (file_exists($path)) {
@@ -155,7 +165,11 @@ class Template
             }
         }
 
-        $message = "Search paths: \n- " . implode("\n- ", $this->paths);
+        if (!$error) {
+            return;
+        }
+
+        $message = "Search paths: \n- " . implode("\n- ", $this->options->paths);
         $file = $file . $this->extension;
         (new TemplateError($message, $file))->render();
     }
@@ -269,7 +283,11 @@ class Template
      */
     public function component($file, array $data = [])
     {
-        $this->component['file'] = $this->file($file);
+        if (empty($this->file($file, false))) {
+            $file = $this->file($this->options->components . '/' . $file);
+        }
+
+        $this->component['file'] = $file;
         $this->component['data'] = $data;
         ob_start();
     }
@@ -369,7 +387,7 @@ class Template
      */
     public function fetch($file, array $data = [])
     {
-        $template = new static($this->paths, !is_null($this->parser));
+        $template = new static((array)$this->options);
         return $template->view($file, $data);
     }
 

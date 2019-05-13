@@ -7,7 +7,10 @@ class TemplateTest extends TestCase
 {
     public function setUp()
     {
-        $this->template = new Template(__DIR__ . '/testdata');
+        $this->template = new Template([
+            'paths' => __DIR__ . '/testdata',
+            'parser' => true,
+        ]);
     }
 
     public function tearDown()
