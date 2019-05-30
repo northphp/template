@@ -4,8 +4,28 @@ namespace North\Template;
 
 use Exception;
 
-class Template
-{
+class Template {
+    /**
+     * Current component.
+     *
+     * @var array
+     */
+
+    protected $component = [
+        'data' => [],
+        'file' => '',
+    ];
+
+    /**
+     * Default section.
+     *
+     * @var array
+     */
+    protected $defaultSection = [
+        'parent' => '',
+        'text'   => '',
+    ];
+
     /**
      * Template extension.
      */
@@ -40,20 +60,22 @@ class Template
     protected $sections = [];
 
     /**
-     * Parent template sections.
-     *
-     * @var array
-     */
-    protected $parentSections = [];
-
-    /**
      * Template constructor.
      *
-     * @param array $paths
+     * @param array $options
      */
-    public function __construct($paths)
-    {
-        $this->paths = is_array($paths) ? $paths : [$paths];
+    public function __construct( array $options ) {
+        $this->options = (object) array_merge( [
+            'components' => 'components',
+            'filters'    => ['escape'],
+            'paths'      => [],
+        ], $options );
+
+        foreach ( ['paths'] as $key ) {
+            if ( ! is_array( $this->options->$key)) {
+                $this->options->$key = [$this->options->$key];
+            }
+        }
     }
 
     /**
@@ -64,8 +86,7 @@ class Template
      *
      * @return mixed
      */
-    public function __call($name, $arguments)
-    {
+    public function __call($name, $arguments) {
         if (isset($this->functions[$name])) {
             return call_user_func_array($this->functions[$name], $arguments);
         }
@@ -77,20 +98,42 @@ class Template
      * @param  string   $name
      * @param  callable $callback
      */
-    public function addFunction($name, $callback)
-    {
+    public function addFunction($name, $callback) {
         $this->functions[$name] = $callback;
+    }
+
+    /**
+     * Call callable code in arrays.
+     *
+     * @param  array $args
+     *
+     * @return array
+     */
+    protected function callData(array $args = []) {
+        foreach ($args as $i => $arg) {
+            if (is_callable($arg)) {
+                $args[$i] = call_user_func($arg);
+                continue;
+            }
+
+            if (is_array($arg)) {
+                $args[$i] = $this->callData($arg);
+                continue;
+            }
+        }
+
+        return $args;
     }
 
     /**
      * Find template file to include.
      *
      * @param  string $file
+     * @param  bool   $error
      *
      * @return string|null
      */
-    protected function file($file)
-    {
+    protected function file($file, $error = true) {
         $name = basename($file, $this->extension);
         $file = str_replace($name, str_replace('.', '/', $name), $file);
         $file = str_replace($this->extension, '', $file);
@@ -99,7 +142,7 @@ class Template
             return $file . $this->extension;
         }
 
-        foreach ($this->paths as $path) {
+        foreach ($this->options->paths as $path) {
             $path = $path . '/' . $file . $this->extension;
 
             if (file_exists($path)) {
@@ -107,7 +150,13 @@ class Template
             }
         }
 
-        throw new Exception(sprintf('Template file could not be found: %s', $file));
+        if (! $error) {
+            return;
+        }
+
+        $message = "Search paths: \n- " . implode("\n- ", $this->options->paths);
+        $file = $file . $this->extension;
+        (new TemplateError($message, $file))->render();
     }
 
     /**
@@ -117,19 +166,17 @@ class Template
      *
      * @return string
      */
-    protected function key($key)
-    {
+    protected function key($key) {
         return '<?=' . $key . '?>';
     }
 
     /**
-     * Render template.
+     * Render template file.
      *
      * @param  string $file
      * @param  array  $data
      */
-    public function render($file, array $data = [])
-    {
+    public function render($file, array $data = []) {
         $file = $this->file($file);
 
         if (! file_exists($file)) {
@@ -137,33 +184,97 @@ class Template
         }
 
         if (! empty($data) && is_array($data)) {
-            extract($data);
+            extract($this->callData($data));
         }
 
-        include $file;
+        $text = file_get_contents($file);
+        $tmp = tmpfile();
+
+        fwrite($tmp, $text);
+        include stream_get_meta_data($tmp)['uri'];
+        fclose($tmp);
 
         $content = $this->layout;
 
-        foreach ($this->sections as $key => $value) {
-            $content = str_replace($this->key($key), $value, $content);
+        foreach ($this->sections as $key => $row) {
+            $content = str_replace($this->key($key), $row['text'], $content);
         }
 
         echo $content;
+
+        $this->reset();
     }
 
     /**
-     * Render view template.
+     * Reset template properties.
+     */
+    protected function reset() {
+        $this->layout = '';
+        $this->sections = [];
+    }
+
+    /**
+     * Render template view without layout replacements.
      *
      * @param  string $file
      * @param  array  $data
      *
      * @return string
      */
-    protected function view($file, array $data = [])
-    {
+    protected function view($file, array $data = []) {
+        $file = $this->file($file);
+
+        if (! file_exists($file)) {
+            return;
+        }
+
+        if (! empty($data) && is_array($data)) {
+            extract($this->callData($data));
+        }
+
+        $text = file_get_contents($file);
+        $tmp = tmpfile();
+
         ob_start();
-        $this->render($file, $data);
+        fwrite($tmp, $text);
+        include stream_get_meta_data($tmp)['uri'];
+        fclose($tmp);
+
         return ob_get_clean();
+    }
+
+    /**
+     * Include a component, it's like section but
+     * some may find the mental model of components easier to understand.
+     *
+     * You can pass additional data to the component.
+     *
+     * @param  string $file
+     * @param  array  $data
+     */
+    public function component($file, array $data = []) {
+        if (empty($this->file($file, false))) {
+            $file = $this->file($this->options->components . '/' . $file);
+        }
+
+        $this->component['file'] = $file;
+        $this->component['data'] = $data;
+        ob_start();
+    }
+
+    /**
+     * End component.
+     */
+    public function endcomponent() {
+        $slot = ob_get_clean();
+        $data = $this->component['data'];
+        $file = $this->component['file'];
+
+        $data = array_merge($data, [
+            'slot' => $slot,
+        ]);
+
+        echo $this->include($file, $data);
     }
 
     /**
@@ -171,34 +282,37 @@ class Template
      *
      * @param  string $name
      */
-    public function block($name)
-    {
-        $this->parent = false;
+    public function block($name) {
+        $args = array_slice(func_get_args(), 1);
 
-        if (!isset($this->sections[$name])) {
+        $this->parent = false;
+        if (! isset($this->sections[$name])) {
             $this->yield($name);
             $this->parent = true;
         }
 
         $this->block = $name;
-        ob_start();
+        $this->sections[$name]['text'] .= implode('', $this->callData($args));
+
+        if (empty($args)) {
+            ob_start();
+        }
     }
 
     /**
      * End block.
      */
-    public function endblock()
-    {
+    public function endblock() {
         if ($this->parent) {
-            if (!isset($this->parentSections[$this->block])) {
-                $this->parentSections[$this->block] = '';
+            if (! isset($this->sections[$this->block])) {
+                $this->sections[$this->block] = $this->defaultSection;
             }
 
-            $this->parentSections[$this->block] .= ob_get_clean();
+            $this->sections[$this->block]['parent'] .= ob_get_clean();
             return;
         }
 
-        $this->sections[$this->block] .= ob_get_clean();
+        $this->sections[$this->block]['text'] .= ob_get_clean();
     }
 
     /**
@@ -212,8 +326,7 @@ class Template
      *
      * @return string
      */
-    public function escape($value, $flags = ENT_COMPAT | ENT_HTML401, $encoding = 'UTF-8')
-    {
+    public function escape($value, $flags = ENT_COMPAT | ENT_HTML401, $encoding = 'UTF-8') {
         return htmlspecialchars($value, $flags, $encoding);
     }
 
@@ -223,8 +336,7 @@ class Template
      * @param  string $template
      * @param  array $data
      */
-    public function extend($template, array $data = [])
-    {
+    public function extend($template, array $data = []) {
         $this->layout = $this->view($template, $data);
     }
 
@@ -236,9 +348,8 @@ class Template
      *
      * @return string
      */
-    public function fetch($file, array $data = [])
-    {
-        $template = new static($this->paths);
+    public function fetch($file, array $data = []) {
+        $template = new static((array)$this->options);
         return $template->view($file, $data);
     }
 
@@ -250,11 +361,12 @@ class Template
      *
      * @return mixed
      */
-    public function filter($value, $functions)
-    {
+    public function filter($value, $functions) {
         foreach (explode('|', $functions) as $function) {
             if (is_callable($function)) {
                 $value = call_user_func($function, $value);
+            } else if (is_array($this->options->filters) && in_array($function, $this->options->filters, true)) {
+                $value = $this->$function($value);
             } else {
                 throw new Exception(sprintf('The filter function could not be found: %s', $function));
             }
@@ -266,28 +378,28 @@ class Template
     /**
      * Include template view.
      *
+     * You can pass additional data to the template.
+     *
      * @param  string $file
      * @param  array  $data
      */
-    public function include($file, array $data = [])
-    {
+    public function include($file, array $data = []) {
         echo $this->fetch($file, $data);
     }
 
     /**
      * Render parent block.
      */
-    public function parent()
-    {
-        if (!isset($this->parentSections[$this->block])) {
+    public function parent() {
+        if (! isset($this->sections[$this->block])) {
             return;
         }
 
-        if (!is_string($this->parentSections[$this->block])) {
+        if (! is_string($this->sections[$this->block]['parent'])) {
             return;
         }
 
-        echo $this->parentSections[$this->block];
+        echo $this->sections[$this->block]['parent'];
     }
 
     /**
@@ -295,10 +407,9 @@ class Template
      *
      * @param  string $name
      */
-    public function yield($name)
-    {
-        if (!isset($this->sections[$name])) {
-            $this->sections[$name] = '';
+    public function yield($name) {
+        if (! isset($this->sections[$name])) {
+            $this->sections[$name] = $this->defaultSection;
         }
 
         echo $this->key($name);

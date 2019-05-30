@@ -14,6 +14,8 @@ composer require north/template
 
 ## Examples
 
+More docs [here](docs/index.md)
+
 ```php
 use North\Template\Template;
 

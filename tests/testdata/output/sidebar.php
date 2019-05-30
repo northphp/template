@@ -2,12 +2,12 @@
 <!doctype html>
 <html>
   <head>
-    <title>404 - Not found</title>
+    <title></title>
   </head>
   <body>
                 <p>Hello parent block</p>
         <div class="content">
-    <h1>404 - Not found</h1></div>    &lt;a href=&quot;#&quot;&gt;Click&lt;/a&gt;
+    <h1>Sidebar</h1></div>
     <footer class="footer">footer</footer>
   </body>
 </html>
