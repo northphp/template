@@ -1,7 +1,5 @@
 # Template
 
-> Work in progress
-
 [![Build Status](https://travis-ci.org/northphp/template.svg?branch=master)](https://travis-ci.org/northphp/template)
 
 A simple template system.
