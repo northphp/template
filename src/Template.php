@@ -131,6 +131,18 @@ class Template
     }
 
     /**
+     * Determine if a file exists or not.
+     *
+     * @param  string $file
+     *
+     * @return bool
+     */
+    public function exists($file)
+    {
+        return !is_null($this->file($file, false));
+    }
+
+    /**
      * Find template file to include.
      *
      * @param  string $file
@@ -143,10 +155,6 @@ class Template
         $name = basename($file, $this->extension);
         $file = str_replace($name, str_replace('.', '/', $name), $file);
         $file = str_replace($this->extension, '', $file);
-
-        if (file_exists($file . $this->extension)) {
-            return $file . $this->extension;
-        }
 
         foreach ($this->options->paths as $path) {
             $path = $path . '/' . $file . $this->extension;
@@ -195,12 +203,7 @@ class Template
             extract($this->callData($data));
         }
 
-        $text = file_get_contents($file);
-        $tmp = tmpfile();
-
-        fwrite($tmp, $text);
-        include stream_get_meta_data($tmp)['uri'];
-        fclose($tmp);
+        include $file;
 
         $content = $this->layout;
 
@@ -242,13 +245,8 @@ class Template
             extract($this->callData($data));
         }
 
-        $text = file_get_contents($file);
-        $tmp = tmpfile();
-
         ob_start();
-        fwrite($tmp, $text);
-        include stream_get_meta_data($tmp)['uri'];
-        fclose($tmp);
+        include $file;
 
         return ob_get_clean();
     }
