@@ -156,7 +156,7 @@ class Template
         $file = str_replace($this->extension, '', $file);
 
         foreach ($this->options->paths as $path) {
-            $path = $path . '/' . $file . $this->extension;
+            $path = $path . '/' . ltrim(str_replace($path, '', $file), '/') . $this->extension;
 
             if (file_exists($path)) {
                 return $path;
