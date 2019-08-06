@@ -11,7 +11,6 @@ class Template
      *
      * @var array
      */
-
     protected $component = [
         'data' => [],
         'file' => '',
